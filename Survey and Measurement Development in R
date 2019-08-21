@@ -1,0 +1,222 @@
+# Measuring expert agreement
+# Before collecting responses about a survey, we want to assess 
+# that subject matter experts (SMEs) agree on the strength of items. 
+
+library(readxl)
+library(irr)
+library(psych)
+library(dplyr)
+library(likert)
+library(tidyverse)
+library(psychometric)
+library(car)
+library(semTools)
+
+Rater_A<- c(1,2,3,2,1,1,1,2,3,3,2,1,1)
+Rater_B<-c(1,2,2,3,3,1,1,1,2,3,3,3,1)
+sme <- data.frame(Rater_A,Rater_B)
+sme
+# Print beginning of sme data frame
+head(sme)
+summary((sme))
+describe(sme)
+str(sme)
+# Correlation matrix of expert ratings
+cor(sme)
+
+# Percentage agreement of experts
+agree(sme)
+
+
+# Inter-rater reliability
+# take a look at the Cohen's kappa statistic for measuring inter-rater agreement, or reliability, between two experts.
+# it accounts for the possibility of agreements occurring by chance.
+# Check inter-rater reliability
+
+cohen.kappa(sme)
+
+#Content validity
+#Next, let's measure content validity using Lawshe's Content Validity Ratio
+#(CVR). The lawshe data frame contains the ratings of 
+#three experts on five potential items. Print it in the Console to see more.
+
+lawshe <- read_excel("Angela/lawshe.xlsx")
+lawshe
+str(lawshe)
+# Calculate the CVR for each unique item in the data frame
+lawshe %>% 
+  group_by(item) %>% 
+  summarize(CVR = CVratio(NTOTAL = length(unique(expert)),
+                          NESSENTIAL = sum(rating == 'Essential')))
+
+
+#   Visualizing response frequencies
+brand_rep <- read_excel("Angela/brand_rep.xlsx")
+# Convert items to factor
+# Convert items to factor
+summary(brand_rep)
+b_rep_likert <- brand_rep %>% 
+  mutate_if(is.numeric, as.factor)
+str(b_rep_likert)
+# Response frequencies - base R
+summary(b_rep_likert)
+
+# Plot response frequencies
+result <- likert(b_rep_likert)
+plot(result)
+
+
+
+# Get response frequencies from psych
+response.frequencies(as.matrix(brand_rep))
+
+# Get response frequencies from psych
+response.frequencies(brand_qual)
+
+# Print item descriptions
+brand_qual_items<-describe(brand_qual)
+# Reverse code the "opposite" item
+brand_qual$tired_r <- recode(brand_qual$tired, 
+                             "1 = 5; 2 = 4; 4 = 2; 5 = 1")
+
+# Get response frequencies from psych
+response.frequencies(brand_qual)
+
+# Print item descriptions
+brand_qual_items
+
+# Reverse code the "opposite" item
+brand_qual$tired_r <- recode(brand_qual$tired, 
+                             "1 = 5; 2 = 4; 4 = 2; 5 = 1")
+
+# Check recoding frequencies
+brand_qual %>% 
+  select(tired, tired_r) %>%
+  response.frequencies() %>%
+  round(2)
+
+# Get response frequencies
+response.frequencies(brand_rep_9)
+
+# Recode the appropriate item 
+b_rep_items
+brand_rep_9$poor_workman_r <- recode(brand_rep_9$poor_workman,   
+                                     "1 = 5; 2 = 4; 4 = 2; 5 = 1")
+
+# Drop poor_workman from brand_rep_9: brand_rep_9_new
+brand_rep_9_new <- select(brand_rep_9, -poor_workman)
+
+# Visualize item correlation
+corrplot(cor(brand_rep_9_new), method = "circle")
+
+
+
+
+#           Comparing models using absolute fit measures
+
+
+# Fit the models to the data
+c_sat_cfa_a <- cfa(model = c_sat_model_a, data = c_sat)
+c_sat_cfa_b <- cfa(model = c_sat_model_b, data = c_sat)
+
+# Print the model definitions
+cat(c_sat_model_a)
+cat(c_sat_model_b)
+
+# Calculate the desired model fit statistics
+fitMeasures(c_sat_cfa_a,
+            fit.measures = c("cfi","tli"))
+fitMeasures(c_sat_cfa_b,
+            fit.measures = c("cfi","tli"))
+
+
+
+#              Comparing CFA models using ANOVA
+
+
+# View current c_sat model
+cat(c_sat_model_a)
+
+# Add EU1 to the CSU factor
+c_sat_model_b <- 'CSU =~ CSU1 + CSU2 + CSU3 + CSU4 + EU1
+                EU =~ EU1 + EU2 + EU3
+                PS =~ PS1 + PS2 + PS3'
+
+# Fit Models A and B to the data
+c_sat_cfa_a <- cfa(model = c_sat_model_a, data = c_sat)
+c_sat_cfa_b <- cfa(model = c_sat_model_b, data = c_sat)
+
+# Compare the nested models
+anova(c_sat_cfa_a, c_sat_cfa_b)
+
+#             validity
+#measuring construct validity 
+#library(semTools)
+# c_sat_sem is a lavaan CFA model
+# Fit three-factor CFA
+
+
+#            Construct validity & model fit
+# comparar 2 modelos con buenos valores en los absoluti fit
+c_sat_cfa_3 <- cfa(model = c_sat_cfa_model_3, data = c_sat)
+
+# Inspect key fit measures - three-factor CFA
+fitMeasures(c_sat_cfa_3, fit.measures = c("cfi","tli","rmsea"))
+
+# Fit two-factor CFA
+c_sat_cfa_2 <- cfa(model = c_sat_cfa_model_2, data = c_sat)
+
+# Inspect key fit measures - two-factor CFA
+fitMeasures(c_sat_cfa_2, fit.measures = c("cfi","tli","rmsea"))
+
+# Compare measures of construct validity for three- versus two-factor models
+reliability(c_sat_cfa_3)
+reliability(c_sat_cfa_2)
+
+# Fit the model to the data 
+c_sat_cfa <- cfa(model = c_sat_model, data = c_sat_group, group = "COUNTRY")
+
+# Summarize results -- include fit measures and standardized estimates
+summary(c_sat_cfa, fit.measures = TRUE, standardized = TRUE)
+
+# Get average estimate for both groups
+standardized_solution <- standardizedSolution(c_sat_cfa)
+standardized_solution %>%
+  filter(op == "=~") %>% 
+  group_by(group) %>% 
+  summarize(mean(est.std))
+
+# Correlate F1, F2 and F3 to spend_f, the 'latentized' spend
+brand_rep_model <- 'F1 =~ well_made + consistent + poor_workman_r
+					F2 =~ higher_price + lot_more + go_up
+					F3 =~ stands_out + unique
+					spend_f =~ spend
+					spend_f ~~ F1 + F2 + F3'
+
+# Fit the model to the data -- sem()
+brand_rep_cv <- sem(data = brand_rep_scaled, model = brand_rep_model)
+
+# Print the standardized covariances b/w spend_f and other factors
+standardizedSolution(brand_rep_cv) %>% filter(rhs == "spend_f")
+
+# Plot the model with standardized estimate labels
+semPaths(brand_rep_cv, whatLabels = "est.std", edge.label.cex = .8)
+
+
+
+#####                   Statistical significance & r-square
+
+# Define the model
+b_q_model <- 'HIP =~ trendy + latest + tired_r
+            VALUE =~ happy_pay + reason_price + good_deal
+            PERFORM =~ strong_perform + leader + serious
+            spend ~ HIP + VALUE + PERFORM'
+
+# Fit the model to the data
+b_q_pv <- sem(data = b_q_scale, model = b_q_model)
+
+# Check fit, r-square, standardized estimates
+summary(b_q_pv, standardized = T, fit.measures = T, rsquare = T)
+
+# Plot the model -- rotate from left to right
+semPaths(b_q_pv, rotation = 2, whatLabels = "est.std", edge.label.cex = .8)
