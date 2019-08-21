@@ -1,0 +1,45 @@
+### 2PL MODEL
+# use the fuction ltm() Latent Trail Model
+
+irtmodel <- ltm(LSAT~z1,IRT.param = TRUE)
+plot(irtmodel)
+plot(irtmodel, type = "IIC", item=0, lwd = 3)
+coef(irtmodel)
+factor.scores(irtmodel)
+person.fit(irtmodel)
+item.fit(irtmodel)
+
+### 3PL MODEL
+# use the fuction tpm() Tree Paremeter Model
+irtmodel2 <- tpm(LSAT, type = "latent.trait", IRT.param = TRUE)
+plot(irtmodel2)
+plot(irtmodel2, type = "IIC", item=0, lwd = 3)
+coef(irtmodel2)
+factor.scores(irtmodel2)
+person.fit(irtmodel2)
+item.fit(irtmodel2)
+
+### 3PL MODEL
+# use the fuction tpm() Tree Paremeter Model
+irtmodel3 <- tpm(LSAT, type = "rasch", IRT.param = TRUE)
+plot(irtmodel3)
+plot(irtmodel3, type = "IIC", item=0, lwd = 3)
+coef(irtmodel3)
+factor.scores(irtmodel3)
+person.fit(irtmodel3)
+item.fit(irtmodel3)
+
+irtmodel4 <- tpm(LSAT, type = c("latent.trait","rasch"), IRT.param = TRUE)
+plot(irtmodel4)
+plot(irtmodel4, type = "IIC", item=0, lwd = 3)
+coef(irtmodel4)
+factor.scores(irtmodel4)
+person.fit(irtmodel4)
+item.fit(irtmodel4)
+
+### compare Models
+#use anova() funtion to compare to see if the addition
+# of the guessing parameter helped
+anova(irtmodel, irtmodel2)
+anova(irtmodel, irtmodel3)
+anova(irtmodel, irtmodel4)
