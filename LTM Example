@@ -1,0 +1,56 @@
+library(psych)
+library(ltm)
+data("LSAT")
+
+
+##### 1LP
+
+### Rasch model with constrained discrimination   ########
+fit1<- rasch(data = LSAT, constraint = cbind(length(LSAT)+1,1))
+summary(fit1)
+coef(fit1,prob = TRUE)
+GoF.rasch(fit1,B = 199)
+plot.rasch(fit1)
+#### Rasch model with unconstrained, but constant, discrimination   ########
+
+fit2<- rasch(data = LSAT)
+
+summary(fit2)
+coef(fit2,prob = TRUE)
+GoF.rasch(fit2,B = 199)
+
+#### Model 2 versus Model 1 ###
+
+anova(fit1,fit2)
+
+##### 2LP
+##### Discriminatory ability ######
+fit3 <- ltm(LSAT~z1)
+summary(fit3)
+coef(fit3,prob = TRUE)
+plot(fit3)
+
+
+###### Model 3 versus Model 2 ######
+
+anova(fit2,fit3)
+
+##### 3LP
+##### Estimating the Impact of Guessing #####
+
+fit4 <- tpm(LSAT,type = "rasch", max.guessing = 1)
+summary(fit4)
+
+###### Model 4 versus Model 2 ######
+
+anova(fit2,fit4)
+
+##### Graphical Representations #######
+plot(fit2,
+     legend = TRUE,
+     cx = "bottomright",
+     lwd = 3,
+     cex.main = 1.5,
+     cex.lab = 1.3,
+     cex = 0.8)
+
