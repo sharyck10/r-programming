@@ -1,0 +1,11 @@
+library("catR")
+bank <- genPolyMatrix(items = 500, model = "PCM", nrCat = 5)
+start <- list(nrItems = 1, theta = 0)
+test <- list(itemSelect = "KL", method = "BM")
+stop <- list(rule = "precision", thr = 0.3)
+final <- list(method = "ML")
+View(head(bank,10))
+head(bank)
+res <- randomCAT(trueTheta = 1, itemBank = bank, model = "PCM",
+                 start = start, test = test, stop = stop, final = final)
+res
