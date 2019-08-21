@@ -1,0 +1,75 @@
+library(tidyverse)
+library(gapminder)
+library(ggplot2)
+
+data<-gapminder
+
+
+
+# example to filter verb
+data %>%
+  filter(year == 2002, country =="China" )
+# example for arraing verb
+# ascendente
+data %>%
+  arrange(gdpPercap)
+#descendente
+data %>%
+  arrange(desc(gdpPercap))
+# example mutate verb
+data  %>%
+  mutate(gdp= gdpPercap*pop)
+
+
+
+# example using more than one verbs
+data %>%
+  mutate(gdp= (gdpPercap*pop)/1000000)%>%
+  filter(year == 2007)%>%
+  arrange(desc(gdp))
+
+
+###     visualization
+#primero creamos una variable con los datos que vamos a vizualizar,
+#para ello asignamos le damos nombre a nuestro nuevo subsed creado filtrando el
+#dataset original
+
+data_2007 <-data %>%
+    filter(year == 2007)
+
+
+#geom_point() indica el tipo de grafica
+#scale_x_log10() es una transformacion 
+
+
+ggplot(data_2007,aes(gdpPercap, lifeExp, size= pop, color = continent )) + 
+  geom_point() + scale_x_log10() +scale_y_log10()
+
+#faceting peque;as graficas
+ggplot(data,aes(gdpPercap, lifeExp, size= pop, color= continent)) + 
+  geom_point() + scale_x_log10() +scale_y_log10() + facet_wrap(~year)
+
+
+#summarize verb
+#group_by verb
+by_year_continent <- data %>%
+  group_by(year, continent) %>%
+    summarise(totalPop = median(pop),
+            meanLifeExp = mean(lifeExp))
+
+ggplot(by_year_continent,aes(year, totalPop, color=continent )) + 
+  geom_point()+
+  expand_limits(y =0)
+
+#line plots good for observe changes in the time
+
+ggplot(by_year_continent,aes(year, totalPop, color=continent )) + 
+  geom_line()+
+  expand_limits(y =0)
+
+#bar plots comparing
+ggplot(by_year_continent,aes(continent, year )) + 
+  geom_col()
+
+  
+
