@@ -1,0 +1,27 @@
+## Dichotomous models ##
+
+# Loading the 'tcals' parameters 
+data(tcals)
+
+# Matrix of item parameters (with no content balancing)
+bank <- as.matrix(tcals[,1:4])
+
+# Creation of a starting list: 5 items with evenly spread theta values
+start <- list(theta = -2:2)
+
+# Creation of 'test' list: weighted likelihood estimation of provisional ability, 
+# and MFI criterion for next item selection
+test <- list(method = "WL", itemSelect = "MFI")
+
+# Creation of 'final' list: EAP estimation of final ability
+final <- list(method = "EAP")
+
+# Creation of a stopping rule: precision criterion, standard error to be reached 0.3
+stop <- list(rule = "precision", thr = 0.3)
+
+# CAT test
+res <- randomCAT(0, bank, start = start, test = test, stop = stop, final = final)
+res
+
+
+plot(res)
